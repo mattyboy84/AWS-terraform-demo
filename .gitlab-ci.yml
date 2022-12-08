@@ -1,0 +1,51 @@
+image:
+  name: hashicorp/terraform:light
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+variables:
+  TF_VAR_gitlab_token: ${GITLAB_ACCESS_TOKEN}
+  AWS_ACCESS_KEY_ID: ${prod_key_id}
+  AWS_SECRET_ACCESS_KEY: ${prod_secret_key}
+  AWS_DEFAULT_REGION: "eu-west-2"
+
+before_script:
+  - terraform init
+
+stages:
+#  - validate
+  - plan
+  - apply
+  - destroy
+
+#validate:
+#  stage: validate
+#  script:
+#    - terraform validate
+
+plan:
+  stage: plan
+  script:
+    - apk add npm
+    - npm install
+    - terraform plan -out="planfile" # this also triggers the project to zip
+  artifacts:
+    paths:
+      - planfile
+      - .terraform-build
+
+apply:
+  stage: apply
+  script:
+    - terraform apply -input=false "planfile"
+  dependencies:
+    - plan
+
+destroy:
+  stage: destroy
+  script:
+    - terraform plan -destroy -out="destroyplan"
+    - terraform apply -input=false "destroyplan"
+  when: manual
+  

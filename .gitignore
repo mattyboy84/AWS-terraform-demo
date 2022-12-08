@@ -1,0 +1,11 @@
+.terraform
+.terraform-build
+planfile
+destroyplan
+node_modules
+scripts
+
+#these are needed to keep track of stuff
+#.terraform.lock.hcl
+#terraform.tfstate
+#terraform.tfstate.backup
